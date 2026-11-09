@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <omp.h> // Usaremos para timing inicialmente
 
+// Antonio Costa Satiro de Souza 10723636
+
 // Função para contar linhas em um único arquivo
 long long count_lines_in_file(const char *filepath)
 {
@@ -87,7 +89,13 @@ long long traverse_directory(const char *dirpath)
         // Se for um diretório, chama recursivamente
         if (S_ISDIR(path_stat.st_mode))
         {
-            total_lines += traverse_directory(fullpath);
+            #pragma omp task shared(total_lines)
+            {
+                long long totaldiretorio = traverse_directory(fullpath);
+                #pragma omp atomic
+                total_lines += totaldiretorio;
+                free(fullpath);
+            }
         }
 
         // Se for um arquivo regular e termina com .c ou .h
@@ -96,14 +104,28 @@ long long traverse_directory(const char *dirpath)
             size_t len = strlen(namelist[i]->d_name);
             if (len > 2 && (strcmp(namelist[i]->d_name + len - 2, ".c") == 0 || strcmp(namelist[i]->d_name + len - 2, ".h") == 0))
             {
-                // printf(" Processando arquivo: %s\n", fullpath);
-                total_lines += count_lines_in_file(fullpath);
+                #pragma omp task shared(total_lines)
+                {
+                    long long c = count_lines_in_file(fullpath);
+                    #pragma omp atomic
+                    total_lines += c;
+                    free(fullpath);
+                }
+            }
+            else
+            {
+                free(fullpath);
             }
         }
-        free(fullpath);
+        else
+        {
+            free(fullpath);
+        }
         free(namelist[i]);
     }
     free(namelist);
+
+    #pragma omp taskwait
 
     // printf("Saindo de %s\n", dirpath);
     return total_lines;

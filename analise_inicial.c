@@ -5,6 +5,8 @@
 #include <math.h>             // Para sqrt
 #define N (1024 * 1024 * 100) // 100 Milhões de inteiros
 
+// Antonio Costa Satiro de Souza 10723636
+
 int main()
 {
 

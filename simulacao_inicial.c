@@ -4,6 +4,8 @@
 #define NUM_PARTICLES (1024 * 1024 * 10)
 #define DT 0.01 // Time step
 
+// Antonio Costa Satiro de Souza 10723636
+
 typedef struct
 {
     double x, y, z;    // Posição
